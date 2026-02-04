@@ -232,7 +232,7 @@ RETRIES=1
 TIMEOUT=30000
 
 # Reporting
-ALLURE_RESULTS_DIR=allure-results
+ALLURE_RESULTS_DIR=reports/allure-results
 SCREENSHOTS=only-on-failure
 VIDEO=retain-on-failure
 ```
@@ -295,19 +295,27 @@ dsalgo-playwright-bdd-framework/
 │   └── 10_graph.feature            # Graph module tests
 │
 ├── 📂 steps/                       # Step Definitions
-│   ├── commonSteps.js              # Shared step implementations
-│   ├── homepageSteps.js            # Homepage-specific steps
-│   ├── authSteps.js                # Authentication steps
-│   ├── arraySteps.js               # Array module steps
-│   └── ...                         # Other module steps
+│   ├── Homepage.steps.js           # Homepage-specific steps
+│   ├── Registration.steps.js       # Registration steps
+│   ├── Signin.steps.js             # Sign-in steps
+│   ├── Array.steps.js              # Array module steps
+│   ├── LinkedList.steps.js         # Linked List module steps
+│   ├── Stack.steps.js              # Stack module steps
+│   ├── Queue.steps.js              # Queue module steps
+│   ├── Tree.steps.js               # Tree module steps
+│   ├── Graph.steps.js              # Graph module steps
+│   └── Logout.steps.js             # Logout steps
 │
 ├── 📂 pages/                       # Page Object Models
-│   ├── BasePage.js                 # Base page with common methods
 │   ├── HomePage.js                 # Homepage page object
 │   ├── SignInPage.js               # Sign-in page object
-│   ├── RegisterPage.js             # Registration page object
+│   ├── RegistrationPage.js         # Registration page object
 │   ├── ArrayPage.js                # Array module page object
-│   └── ...                         # Other module pages
+│   ├── LinkedListPage.js           # Linked List page object
+│   ├── StackPage.js                # Stack page object
+│   ├── QueuePage.js                # Queue page object
+│   ├── TreePage.js                 # Tree page object
+│   └── GraphPage.js                # Graph page object
 │
 ├── 📂 fixtures/                    # Test Fixtures
 │   └── testFixtures.js             # Custom Playwright fixtures
@@ -317,17 +325,18 @@ dsalgo-playwright-bdd-framework/
 │
 ├── 📂 utils/                       # Utility Functions
 │   ├── logger.js                   # Winston logger configuration
-│   ├── excelReader.js              # Excel data reader
-│   └── helpers.js                  # Common helper functions
+│   └── excelReader.js              # Excel data reader
 │
 ├── 📂 .auth/                       # Authentication State (gitignored)
 │   └── user.json                   # Stored auth state
 │
-├── 📂 allure-results/              # Allure Report Data (gitignored)
-├── 📂 allure-report/               # Generated Allure Report (gitignored)
-├── 📂 playwright-report/           # Playwright HTML Report (gitignored)
-├── 📂 test-results/                # Test Artifacts (gitignored)
+├── 📂 reports/                     # Test Reports (gitignored)
+│   ├── allure-results/             # Allure report data
+│   ├── allure-report/              # Generated Allure report
+│   ├── playwright-report/          # Playwright HTML report
+│   └── test-results/               # Test artifacts (screenshots, videos)
 │
+├── 📄 .env                         # Environment variables
 ├── 📄 playwright.config.js         # Playwright configuration
 ├── 📄 package.json                 # Project dependencies
 ├── 📄 .gitignore                   # Git ignore rules
@@ -665,7 +674,7 @@ npm run allure:generate
 npm run allure:open
 
 # Serve report (for sharing)
-npx allure serve allure-results
+npx allure serve reports/allure-results
 ```
 
 #### Allure Report Features
@@ -690,10 +699,10 @@ npx playwright show-report
 
 | Report Type | Location | Command |
 |-------------|----------|---------|
-| Allure Results | `./allure-results/` | Auto-generated |
-| Allure Report | `./allure-report/` | `npm run allure:generate` |
-| Playwright Report | `./playwright-report/` | `npm run report` |
-| Test Artifacts | `./test-results/` | Auto-generated |
+| Allure Results | `./reports/allure-results/` | Auto-generated |
+| Allure Report | `./reports/allure-report/` | `npm run allure:generate` |
+| Playwright Report | `./reports/playwright-report/` | `npm run report` |
+| Test Artifacts | `./reports/test-results/` | Auto-generated |
 
 ---
 
@@ -744,14 +753,14 @@ jobs:
         if: always()
         run: |
           npm install -g allure-commandline
-          npx allure generate allure-results --clean -o allure-report
+          npx allure generate reports/allure-results --clean -o reports/allure-report
 
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: allure-report/
+          path: reports/allure-report/
           retention-days: 30
 
       - name: Upload Playwright Report
@@ -759,7 +768,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: reports/playwright-report/
           retention-days: 30
 
       - name: Upload Test Artifacts
@@ -767,7 +776,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
-          path: test-results/
+          path: reports/test-results/
           retention-days: 7
 ```
 
@@ -801,7 +810,7 @@ pipeline {
                 always {
                     allure includeProperties: false,
                            jdk: '',
-                           results: [[path: 'allure-results']]
+                           results: [[path: 'reports/allure-results']]
                 }
             }
         }
@@ -809,8 +818,8 @@ pipeline {
     
     post {
         always {
-            archiveArtifacts artifacts: 'playwright-report/**/*', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'test-results/**/*', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'reports/playwright-report/**/*', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'reports/test-results/**/*', allowEmptyArchive: true
         }
     }
 }
@@ -855,7 +864,7 @@ java -version
 
 # If not found, install Java and restart terminal
 # Then manually serve the report
-npx allure serve allure-results
+npx allure serve reports/allure-results
 ```
 
 #### Issue: "Tests timeout frequently"
@@ -907,7 +916,7 @@ npm run test:debug
 npx playwright test --trace on
 
 # View trace file
-npx playwright show-trace test-results/trace.zip
+npx playwright show-trace reports/test-results/trace.zip
 
 # Generate verbose output
 DEBUG=pw:api npm test
