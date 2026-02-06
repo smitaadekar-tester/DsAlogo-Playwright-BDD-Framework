@@ -7,7 +7,7 @@ import 'dotenv/config';
 console.log('🌐 Using BASE_URL:', process.env.BASE_URL || 'https://dsportalapp.herokuapp.com'); 
 
 
-
+ 
 const testDir = defineBddConfig({
   features: ['features/*.feature'],
   steps: ['steps/*.steps.js'],
@@ -18,6 +18,7 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
   testDir,
+  globalSetup: './global-setup.js',  
   globalTeardown: './global-teardown.js',
   fullyParallel: false,  // ✅ Enable parallel execution
   forbidOnly: !!process.env.CI,
@@ -84,7 +85,7 @@ export default defineConfig({
       name: 'phase3-signin',
       testMatch: /.*03_signin\.feature/,
       grep: /@signin/,
-     //dependencies: ['phase2-registration'],
+      //dependencies: ['phase2-registration'],
       fullyParallel: false,  // ✅ Sequential within phase
       use: { 
         ...devices['Desktop Chrome'],
@@ -189,6 +190,18 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         storageState: '.auth/user.json',
+      },
+    },
+    // ========================================
+                      // SECURITY TESTS - INDEPENDENT (No Dependencies)
+                     // ========================================
+    {
+      name: 'security-tests',
+      testMatch: /.*03_signin\.feature/,
+      grep: /@security/,
+      fullyParallel: false,
+      use: {
+        ...devices['Desktop Chrome'],
       },
     },
 
