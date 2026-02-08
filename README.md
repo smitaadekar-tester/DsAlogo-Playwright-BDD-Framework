@@ -73,7 +73,7 @@ DSAlgo Portal is an educational web application that teaches data structures and
 |---------|-------------|
 | **BDD Testing** | Gherkin scenarios with playwright-bdd for human-readable tests |
 | **Page Object Model** | Maintainable, reusable page components |
-| **Data-Driven Testing** | Excel-based test data management (XLSX) |
+| **Data-Driven Testing** | Excel-based test data management (ExcelJS) |
 | **Parallel Execution** | Multi-worker test execution for faster runs |
 | **Cross-Browser Support** | Chromium, Firefox, and WebKit |
 | **Authentication Management** | Reusable auth state across test sessions |
@@ -85,7 +85,7 @@ DSAlgo Portal is an educational web application that teaches data structures and
 - ✅ **Custom Fixtures** — Extended Playwright fixtures for enhanced functionality
 - ✅ **Structured Logging** — Winston-based logging with configurable levels
 - ✅ **Auto-retry Logic** — Built-in retry mechanisms for flaky tests
-- ✅ **CI/CD Ready** — GitHub Actions and Jenkins integration
+- ✅ **CI/CD Ready** — GitHub Actions integration
 - ✅ **Code Editor Testing** — Automated testing of interactive code editors
 
 ---
@@ -101,7 +101,7 @@ DSAlgo Portal is an educational web application that teaches data structures and
 │                         Core Components                          │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
 │  │   Fixtures   │  │  Test Data   │  │  Utility Functions   │   │
-│  │  (Custom)    │  │   (Excel)    │  │  (Logger, Helpers)   │   │
+│  │  (Custom)    │  │  (ExcelJS)   │  │  (Logger, Helpers)   │   │
 │  └──────────────┘  └──────────────┘  └──────────────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │                      Infrastructure Layer                        │
@@ -175,7 +175,7 @@ npm install
 This installs all required packages including:
 - `@playwright/test` — Browser automation
 - `playwright-bdd` — BDD integration
-- `xlsx` — Excel file handling
+- `exceljs` — Excel file handling
 - `winston` — Logging
 - `allure-playwright` — Report generation
 
@@ -521,7 +521,7 @@ Feature: Array Data Structure Module
 ### Step Definition Implementation
 
 ```javascript
-// steps/arraySteps.js
+// steps/Array.steps.js
 import { Given, When, Then } from './fixtures/testFixtures.js';
 import { expect } from '@playwright/test';
 
@@ -534,12 +534,12 @@ When('The user clicks "Practice Questions" link', async ({ arrayPage }) => {
 });
 
 When('The user enters solution from {string} row {int}', async ({ arrayPage, testData }, sheet, row) => {
-  const solution = testData.getFromSheet(sheet, row, 'solution');
+  const solution = await testData.getFromSheet(sheet, row, 'solution');
   await arrayPage.enterCode(solution);
 });
 
-Then('The output should match expected result', async ({ arrayPage, testData }) => {
-  const expectedOutput = testData.getCurrentExpectedOutput();
+Then('The output should match expected result', async ({ arrayPage, testData }, datatable) => {
+  const expectedOutput = await testData.getFromSheet('ArrayPracticeSolutions', 0, 'expected_output');
   await expect(arrayPage.outputArea).toContainText(expectedOutput);
 });
 ```
@@ -599,6 +599,7 @@ export const test = base.extend({
   
   testData: async ({}, use) => {
     const reader = new ExcelReader('./testdata/TestData.xlsx');
+    await reader.loadWorkbook(); // Pre-load workbook for performance
     await use(reader);
   },
 });
@@ -631,28 +632,87 @@ The `TestData.xlsx` file contains multiple sheets for different test scenarios:
 |---------------|----------|-----------------|
 | Search the array | `def search(arr, x):...` | Element found |
 
-### Reading Test Data
+### Reading Test Data with ExcelJS
 
 ```javascript
 // utils/excelReader.js
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export class ExcelReader {
   constructor(filePath) {
-    this.workbook = XLSX.readFile(filePath);
+    this.filePath = filePath;
+    this.workbook = null;
   }
 
-  getFromSheet(sheetName, rowIndex, columnName) {
-    const sheet = this.workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(sheet);
-    return data[rowIndex]?.[columnName];
+  async loadWorkbook() {
+    if (!this.workbook) {
+      this.workbook = new ExcelJS.Workbook();
+      await this.workbook.xlsx.readFile(this.filePath);
+    }
   }
 
-  getAllFromSheet(sheetName) {
-    const sheet = this.workbook.Sheets[sheetName];
-    return XLSX.utils.sheet_to_json(sheet);
+  async getFromSheet(sheetName, rowIndex, columnName) {
+    await this.loadWorkbook();
+    const worksheet = this.workbook.getWorksheet(sheetName);
+    const headers = [];
+    
+    // Get headers from first row
+    worksheet.getRow(1).eachCell((cell, colNumber) => {
+      headers[colNumber] = cell.value;
+    });
+    
+    // Get data from specified row (rowIndex + 2 because row 1 is headers, rows are 1-indexed)
+    const dataRow = worksheet.getRow(rowIndex + 2);
+    const columnIndex = headers.indexOf(columnName);
+    
+    return dataRow.getCell(columnIndex).value;
+  }
+
+  async getAllFromSheet(sheetName) {
+    await this.loadWorkbook();
+    const worksheet = this.workbook.getWorksheet(sheetName);
+    const data = [];
+    const headers = [];
+    
+    // Get headers from first row
+    worksheet.getRow(1).eachCell((cell, colNumber) => {
+      headers[colNumber - 1] = cell.value;
+    });
+    
+    // Get all data rows
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) { // Skip header row
+        const rowData = {};
+        row.eachCell((cell, colNumber) => {
+          rowData[headers[colNumber - 1]] = cell.value;
+        });
+        data.push(rowData);
+      }
+    });
+    
+    return data;
   }
 }
+```
+
+### Key Differences: ExcelJS vs XLSX
+
+| Feature | ExcelJS | XLSX |
+|---------|---------|------|
+| **API Style** | Async (Promise-based) | Sync |
+| **Usage** | `await workbook.xlsx.readFile()` | `XLSX.readFile()` |
+| **Cell Access** | Object-oriented (`.getCell()`) | Array-based |
+| **Performance** | Better for large files | Faster for small files |
+| **Writing** | Full Excel feature support | Basic support |
+
+**Important:** Always use `await` with ExcelJS methods:
+
+```javascript
+// ✅ Correct
+const solution = await testData.getFromSheet('ArrayPracticeSolutions', 0, 'solution');
+
+// ❌ Wrong
+const solution = testData.getFromSheet('ArrayPracticeSolutions', 0, 'solution');
 ```
 
 ---
@@ -710,119 +770,169 @@ npx playwright show-report
 
 ### GitHub Actions
 
+The project includes a complete GitHub Actions workflow for automated testing.
+
+#### Workflow Configuration
+
 Create `.github/workflows/playwright.yml`:
 
 ```yaml
-name: Playwright Tests
+name: Playwright-BDD Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main ]
   pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+    branches: [ main ]
 
 jobs:
   test:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    
+    env:
+      BASE_URL: https://dsportalapp.herokuapp.com
+      TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      HEADLESS: true
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run Playwright tests
-        run: npm test
-        env:
-          CI: true
-
-      - name: Generate Allure Report
-        if: always()
-        run: |
-          npm install -g allure-commandline
-          npx allure generate reports/allure-results --clean -o reports/allure-report
-
-      - name: Upload Allure Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: reports/allure-report/
-          retention-days: 30
-
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: reports/playwright-report/
-          retention-days: 30
-
-      - name: Upload Test Artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts
-          path: reports/test-results/
-          retention-days: 7
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    
+    - name: Generate BDD specs
+      run: npm run bddgen
+    
+    - name: Run Playwright tests
+      run: npm test
+      continue-on-error: true
+    
+    - name: Generate Allure Report
+      if: always()
+      run: npx allure generate reports/allure-results --clean -o allure-report
+    
+    - name: Upload Playwright HTML Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: reports/playwright-report/
+        retention-days: 30
+    
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report/
+        retention-days: 30
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: reports/allure-results/
+        retention-days: 7
 ```
 
-### Jenkins Pipeline
+#### Setting Up GitHub Secrets
 
-```groovy
-pipeline {
-    agent any
-    
-    tools {
-        nodejs 'Node-20'
-    }
-    
-    environment {
-        CI = 'true'
-    }
-    
-    stages {
-        stage('Install') {
-            steps {
-                sh 'npm ci'
-                sh 'npx playwright install --with-deps chromium'
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                sh 'npm test'
-            }
-            post {
-                always {
-                    allure includeProperties: false,
-                           jdk: '',
-                           results: [[path: 'reports/allure-results']]
-                }
-            }
-        }
-    }
-    
-    post {
-        always {
-            archiveArtifacts artifacts: 'reports/playwright-report/**/*', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'reports/test-results/**/*', allowEmptyArchive: true
-        }
-    }
-}
+Before running the workflow, configure these secrets in your GitHub repository:
+
+**Navigate to:** `Settings → Secrets and variables → Actions → New repository secret`
+
+| Secret Name | Description | Example Value |
+|-------------|-------------|---------------|
+| `TEST_USERNAME` | Valid registered username for DSAlgo Portal | `testuser123` |
+| `TEST_PASSWORD` | User's password | `Test@12345` |
+
+#### Workflow Triggers
+
+The workflow runs automatically on:
+- **Push to main branch** — Any commit pushed to main
+- **Pull requests** — PRs targeting the main branch
+
+To add scheduled runs (optional):
+
+```yaml
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+```
+
+#### Viewing Test Reports
+
+After workflow completion:
+
+1. **Go to Actions tab** in your GitHub repository
+2. **Click on the workflow run** you want to review
+3. **Scroll to Artifacts** section at the bottom
+4. **Download reports**:
+   - `playwright-report` — Playwright HTML report (30-day retention)
+   - `allure-report` — Allure HTML report (30-day retention)
+   - `allure-results` — Raw Allure JSON results (7-day retention)
+
+#### Local Simulation of CI Environment
+
+Test your workflow locally before pushing:
+
+```bash
+# Simulate CI environment variables
+export CI=true
+export HEADLESS=true
+export TEST_USERNAME="your_username"
+export TEST_PASSWORD="your_password"
+export BASE_URL="https://dsportalapp.herokuapp.com"
+
+# Run the same commands as CI
+npm ci
+npx playwright install --with-deps
+npm run bddgen
+npm test
+```
+
+#### Optimization Tips
+
+**1. Install only required browser:**
+```yaml
+- name: Install Playwright Browsers
+  run: npx playwright install --with-deps chromium
+```
+
+**2. Enable caching for faster builds:**
+```yaml
+- name: Cache node modules
+  uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+```
+
+**3. Run tests in parallel with matrix strategy:**
+```yaml
+strategy:
+  matrix:
+    project: [setup, modules, cleanup]
+steps:
+  - run: npx playwright test --project=${{ matrix.project }}
 ```
 
 ---
@@ -906,6 +1016,16 @@ npx playwright test --workers=1
 await page.waitForLoadState('networkidle');
 ```
 
+#### Issue: "ExcelJS data not loading"
+```javascript
+// Cause: Missing await on async methods
+// ❌ Wrong
+const solution = testData.getFromSheet('Sheet1', 0, 'solution');
+
+// ✅ Correct
+const solution = await testData.getFromSheet('Sheet1', 0, 'solution');
+```
+
 ### Debug Commands
 
 ```bash
@@ -959,7 +1079,14 @@ npx playwright test --update-snapshots
 - Feature files serve as living documentation
 
 **Q: How does authentication state work?**
+
 The framework saves auth state after login to `.auth/user.json`. Subsequent tests reuse this state, avoiding repeated logins and improving execution speed.
+
+**Q: Why ExcelJS instead of XLSX?**
+- ExcelJS provides better support for modern async/await patterns
+- Better handling of large Excel files
+- Full support for Excel features (formatting, formulas, etc.)
+- More active maintenance and updates
 
 **Q: Can I add custom reporters?**
 ```javascript
@@ -1005,6 +1132,7 @@ We welcome contributions! Please follow these guidelines:
 - Write descriptive Gherkin scenarios
 - Add JSDoc comments for functions
 - Maintain existing code formatting
+- Always use `await` with ExcelJS methods
 
 ### Commit Message Format
 
@@ -1018,7 +1146,8 @@ Scope: array, auth, config, steps, pages, etc.
 Examples:
 - `feat(array): add practice question tests`
 - `fix(auth): resolve login state persistence`
-- `docs(readme): update installation steps`
+- `docs(readme): update ExcelJS usage examples`
+- `refactor(testdata): migrate from XLSX to ExcelJS`
 
 ---
 
@@ -1028,10 +1157,11 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [Playwright](https://playwright.dev/) — Microsoft's browser automation framework
 - [playwright-bdd](https://github.com/vitalets/playwright-bdd) — BDD integration for Playwright
+- [ExcelJS](https://github.com/exceljs/exceljs) — Excel file manipulation library
 - [Allure Framework](https://allurereport.org/) — Test reporting
 - [DSAlgo Portal](https://dsportalapp.herokuapp.com) — Application under test
 
