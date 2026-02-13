@@ -6,7 +6,7 @@ async function globalTeardown() {
   console.log('   STARTING GLOBAL TEARDOWN');
   console.log('========================================\n');
   
-
+  
   // ========================================
   // 1. LOGOUT FROM APPLICATION
   // ========================================

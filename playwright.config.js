@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 
 // Optional: Log to verify .env is loaded
-console.log('🌐 Using BASE_URL:', process.env.BASE_URL || 'https://dsportalapp.herokuapp.com'); 
+//console.log('🌐 Using BASE_URL:', process.env.BASE_URL || 'https://dsportalapp.herokuapp.com'); 
 
 
  
