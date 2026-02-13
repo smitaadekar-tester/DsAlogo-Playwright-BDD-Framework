@@ -2,9 +2,37 @@ name: Playwright-BDD Tests
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'features/**'             
+      - 'steps/**'                
+      - 'pages/**'                
+      - 'fixtures/**'             
+      - 'utils/**'                
+      - 'testdata/**'             
+      - 'playwright.config.js'    
+      - 'package.json'            
+      - 'package-lock.json'       
+      - '.github/workflows/**'    
+      - 'global-setup.js'         
+      - 'global-teardown.js'      
+
   pull_request:
     branches: [ main ]
-  workflow_dispatch:    
+    paths:
+      - 'features/**'
+      - 'steps/**'
+      - 'pages/**'
+      - 'fixtures/**'
+      - 'utils/**'
+      - 'testdata/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/**'
+      - 'global-setup.js'
+      - 'global-teardown.js'
+
+  workflow_dispatch:             
 permissions:
   contents: write    
 jobs:
