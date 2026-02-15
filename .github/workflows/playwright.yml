@@ -114,3 +114,12 @@ jobs:
         name: allure-results
         path: reports/allure-results/
         retention-days: 7
+
+    
+    - name: Print Report URLs
+      if: always()
+      run: |
+        echo "## 📊 Test Reports" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔴 [Allure Report](https://uthika.github.io/Playwright-Bdd-framework/)" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎭 [Playwright Report](https://uthika.github.io/Playwright-Bdd-framework/playwright-report/)" >> $GITHUB_STEP_SUMMARY
+    
