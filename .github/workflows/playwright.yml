@@ -88,7 +88,8 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./reports/playwright-report
         publish_branch: gh-pages
-        destination_dir: playwright-report       
+        destination_dir: playwright-report 
+        keep_files: true           
     
     - name: Upload Playwright HTML Report
       if: always()
