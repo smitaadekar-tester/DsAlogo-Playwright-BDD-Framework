@@ -6,10 +6,11 @@
 [![Cucumber](https://img.shields.io/badge/Cucumber-Gherkin-brightgreen?logo=cucumber)](https://cucumber.io)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Allure Report](https://img.shields.io/badge/Allure%20Report-Live-orange)](https://uthika.github.io/Playwright-Bdd-framework/)
+[![Playwright Report](https://img.shields.io/badge/Playwright%20Report-Live-blue)](https://uthika.github.io/Playwright-Bdd-framework/playwright-report/)
 
 > Enterprise-grade BDD test automation framework for the DSAlgo Portal application
 
-**📊 [View Live Allure Report](https://uthika.github.io/Playwright-Bdd-framework/)**
+**📊 [View Live Allure Report](https://uthika.github.io/Playwright-Bdd-framework/)** | **🎭 [View Live Playwright Report](https://uthika.github.io/Playwright-Bdd-framework/playwright-report/)**
 
 [Features](#-features) • [Quick Start](#-installation) • [Running Tests](#-running-tests) • [Project Structure](#-project-structure) • [Reports](#-reports) • [Contributing](#-contributing)
 
@@ -82,6 +83,7 @@ DSAlgo Portal is an educational web application that teaches data structures and
 - ✅ **Auto-retry Logic** — Built-in retry mechanisms for flaky tests
 - ✅ **CI/CD Ready** — GitHub Actions integration with manual trigger support
 - ✅ **Live Allure Report** — Auto-published to GitHub Pages after every run
+- ✅ **Live Playwright Report** — Also published to GitHub Pages at `/playwright-report/`
 - ✅ **Code Editor Testing** — Automated testing of interactive code editors
 
 ---
@@ -509,13 +511,14 @@ LOG_LEVEL=info npm test     # Default - CI/CD
 
 ## 📈 Reports
 
-### Live Report (GitHub Pages)
+### Live Reports (GitHub Pages)
 
-The Allure report is automatically published after every CI run and is accessible at:
+Both reports are automatically published after every CI run:
 
-> 📊 **https://uthika.github.io/Playwright-Bdd-framework/**
+> 📊 **Allure Report:** https://uthika.github.io/Playwright-Bdd-framework/
+> 🎭 **Playwright Report:** https://uthika.github.io/Playwright-Bdd-framework/playwright-report/
 
-No login required — shareable with anyone!
+No login required — shareable with anyone! Report links also appear directly in each GitHub Actions run summary.
 
 ### Local Allure Report
 
@@ -536,7 +539,8 @@ npx playwright show-report # Open existing report
 
 | Report Type | Location | Retention |
 |---|---|---|
-| Live Allure Report | GitHub Pages URL above | Always latest |
+| Live Allure Report | `https://uthika.github.io/Playwright-Bdd-framework/` | Always latest |
+| Live Playwright Report | `https://uthika.github.io/Playwright-Bdd-framework/playwright-report/` | Always latest |
 | Allure Results (CI artifact) | GitHub Actions → Artifacts | 7 days |
 | Allure Report (CI artifact) | GitHub Actions → Artifacts | 30 days |
 | Playwright Report (CI artifact) | GitHub Actions → Artifacts | 30 days |
@@ -613,6 +617,16 @@ jobs:
           publish_dir: ./allure-report
           publish_branch: gh-pages
 
+      - name: Deploy Playwright Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports/playwright-report
+          publish_branch: gh-pages
+          destination_dir: playwright-report
+          keep_files: true          # Preserves Allure files when deploying Playwright report
+
       - name: Upload Playwright HTML Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -636,6 +650,13 @@ jobs:
           name: allure-results
           path: reports/allure-results/
           retention-days: 7
+
+      - name: Print Report URLs
+        if: always()
+        run: |
+          echo "## 📊 Test Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔴 [Allure Report](https://uthika.github.io/Playwright-Bdd-framework/)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎭 [Playwright Report](https://uthika.github.io/Playwright-Bdd-framework/playwright-report/)" >> $GITHUB_STEP_SUMMARY
 ```
 
 ### Setting Up GitHub Secrets
@@ -654,7 +675,9 @@ Navigate to: **Settings → Secrets and variables → Actions → New repository
 3. Under **Branch**, select `gh-pages` and `/ (root)`
 4. Click **Save**
 
-Your live report will be available at `https://uthika.github.io/Playwright-Bdd-framework/` within a few minutes.
+Your live reports will be available within a few minutes:
+- Allure Report: `https://uthika.github.io/Playwright-Bdd-framework/`
+- Playwright Report: `https://uthika.github.io/Playwright-Bdd-framework/playwright-report/`
 
 ### Running Tests Manually (Without Pushing)
 
@@ -757,9 +780,11 @@ Scenario: This test will be skipped
 npx playwright test --last-failed
 ```
 
-**Q: Can team members access the Allure report?**
+**Q: Can team members access the reports?**
 
-Yes! The report is publicly available at `https://uthika.github.io/Playwright-Bdd-framework/` — no GitHub account required.
+Yes! Both reports are publicly available — no GitHub account required:
+- Allure Report: `https://uthika.github.io/Playwright-Bdd-framework/`
+- Playwright Report: `https://uthika.github.io/Playwright-Bdd-framework/playwright-report/`
 
 **Q: Why use `fullyParallel: false`?**
 
