@@ -1,0 +1,4 @@
+info: Clicked Sign out link {"service":"dsalgo-test-framework","timestamp":"2026-02-18 19:40:53"}
+info: Verified alert message: Logged out successfully {"service":"dsalgo-test-framework","timestamp":"2026-02-18 19:40:53"}
+info: Verified Sign in link is visible {"service":"dsalgo-test-framework","timestamp":"2026-02-18 19:40:53"}
+info: Verified Register link is visible {"service":"dsalgo-test-framework","timestamp":"2026-02-18 19:40:53"}
