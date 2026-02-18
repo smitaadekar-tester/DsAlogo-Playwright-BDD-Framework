@@ -1,0 +1,5 @@
+info: Detected OS: linux, using Control key {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:31:08"}
+info: Navigated to Data Structures landing page {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:31:08"}
+info: Clicked topic: Time Complexity {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:31:09"}
+info: Clicked Practice Questions link {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:31:09"}
+✅ On Data Structures Practice Questions page

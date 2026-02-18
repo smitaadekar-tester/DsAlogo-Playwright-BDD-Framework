@@ -1,0 +1,9 @@
+info: Navigated to sign in page {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Loaded Excel file: ./testdata/TestData.xlsx {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Read data from sheet: SignInData, row: 0 {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Entered username: playwrightjs {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Entered password {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Entered login credentials {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:35"}
+info: Clicked Login button {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:37"}
+info: Saved authentication state to: .auth/user.json {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:39"}
+info: Verified username is displayed:  {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:28:39"}

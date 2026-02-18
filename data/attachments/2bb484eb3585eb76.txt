@@ -1,0 +1,10 @@
+info: Clicked Sign out link {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:30:48"}
+info: Verified alert message: Logged out successfully {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:30:48"}
+info: Verified Sign in link is visible {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:30:48"}
+info: Verified Register link is visible {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:30:48"}
+🔐 Logging in with username: john@123
+✅ Successfully logged in as john@123
+💾 Saved authentication state to .auth/user.json
+✅ Successfully logged in as john@123
+✅ User is logged in successfully
+info: Verified username is displayed:  {"service":"dsalgo-test-framework","timestamp":"2026-02-18 20:30:49"}
