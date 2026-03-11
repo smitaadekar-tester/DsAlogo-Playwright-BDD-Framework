@@ -1,0 +1,2 @@
+info: Navigated to Tree landing page {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:33:03"}
+info: Clicked topic: Applications of Binary trees {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:33:03"}

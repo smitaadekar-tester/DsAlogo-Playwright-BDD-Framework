@@ -1,0 +1,2 @@
+info: Navigated to sign in page {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:30:27"}
+✅ Navigated directly to /queue/QueueOp/

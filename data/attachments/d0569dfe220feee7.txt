@@ -1,0 +1,13 @@
+info: Navigated to registration page {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Loaded Excel file: ./testdata/TestData.xlsx {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Read data from sheet: RegistrationData, row: 0 {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: 📊 Registering with username: stranger_61068438 {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Entered username: stranger_61068438 {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Entered password {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Entered password confirmation {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Entered all registration details {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:08"}
+info: Clicked Register button {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:09"}
+info: ✅ Success message: "New Account Created.
+    
+            You are logged in as stranger_61068438" {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:09"}
+info: ✅ Navigated to homepage {"service":"dsalgo-test-framework","timestamp":"2026-03-11 20:31:09"}
